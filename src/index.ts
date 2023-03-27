@@ -1,7 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
+import { MongoClient, ServerApiVersion } from "mongodb";
 
 // Env Var
 dotenv.config();
@@ -45,30 +45,10 @@ app.get('/test', (req: Request, res: Response) => {
   );
 });
 
-app.post('/test', (req: Request, res: Response) => {
-  let body = req.body;
-  if (body) {
-    body = {...body, "_dateCreated": (new Date()).toISOString()};
-    const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
-    collection.insertOne(body).then(
-      r => {
-        res.status(201);
-        res.send({
-          "insertedId": r.insertedId.toHexString()
-        });
-      }
-    );
-  }
-  else {
-    res.status(500);
-    res.send("Error");
-  }
-});
-
 app.get('/test/:id', async (req: Request, res: Response) => {
   const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
-  const id = new ObjectId(req.params.id);
-  const r = await collection.findOne({ "_id": id });
+  const id = req.params.id;
+  const r = await collection.findOne({ "id": id });
   if (r) {
     res.send(r);
   }
@@ -78,10 +58,38 @@ app.get('/test/:id', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/test/:id', async (req: Request, res: Response) => {
+  let body = req.body;
+  const id = req.params.id;
+  if (body) {
+    const doc = { "id": id, "_dateCreated": (new Date()).toISOString(), ...body };
+    const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+    const r = await collection.findOne({ "id": id });
+    if (r) {
+      res.status(302);
+      res.send(`Document with id ${id} already exists`);
+    }
+    else {
+      collection.insertOne(doc).then(
+        r => {
+          res.status(201);
+          res.send({
+            "insertedId": r.insertedId.toHexString()
+          });
+        }
+      );
+    }
+  }
+  else {
+    res.status(500);
+    res.send("Error");
+  }
+});
+
 app.delete('/test/:id', async (req: Request, res: Response) => {
   const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
-  const id = new ObjectId(req.params.id);
-  const r = await collection.deleteOne({ "_id": id });
+  const id = req.params.id;
+  const r = await collection.deleteOne({ "id": id });
   if (r.deletedCount === 0) {
     res.status(404);
     res.send("Not found");

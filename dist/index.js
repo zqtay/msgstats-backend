@@ -47,27 +47,10 @@ app.get('/test', (req, res) => {
     const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
     collection.find({}).toArray().then(r => res.send(r));
 });
-app.post('/test', (req, res) => {
-    let body = req.body;
-    if (body) {
-        body = Object.assign(Object.assign({}, body), { "_dateCreated": (new Date()).toISOString() });
-        const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
-        collection.insertOne(body).then(r => {
-            res.status(201);
-            res.send({
-                "insertedId": r.insertedId.toHexString()
-            });
-        });
-    }
-    else {
-        res.status(500);
-        res.send("Error");
-    }
-});
 app.get('/test/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
-    const id = new mongodb_1.ObjectId(req.params.id);
-    const r = yield collection.findOne({ "_id": id });
+    const id = req.params.id;
+    const r = yield collection.findOne({ "id": id });
     if (r) {
         res.send(r);
     }
@@ -76,10 +59,35 @@ app.get('/test/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.send("Not found");
     }
 }));
+app.post('/test/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let body = req.body;
+    const id = req.params.id;
+    if (body) {
+        const doc = Object.assign({ "id": id, "_dateCreated": (new Date()).toISOString() }, body);
+        const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+        const r = yield collection.findOne({ "id": id });
+        if (r) {
+            res.status(302);
+            res.send(`Document with id ${id} already exists`);
+        }
+        else {
+            collection.insertOne(doc).then(r => {
+                res.status(201);
+                res.send({
+                    "insertedId": r.insertedId.toHexString()
+                });
+            });
+        }
+    }
+    else {
+        res.status(500);
+        res.send("Error");
+    }
+}));
 app.delete('/test/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
-    const id = new mongodb_1.ObjectId(req.params.id);
-    const r = yield collection.deleteOne({ "_id": id });
+    const id = req.params.id;
+    const r = yield collection.deleteOne({ "id": id });
     if (r.deletedCount === 0) {
         res.status(404);
         res.send("Not found");
