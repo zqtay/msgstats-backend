@@ -32,7 +32,7 @@ client.connect().then(() => {
 }).catch(err => {
     client.close();
 });
-const MSGDATA_COLLECTION_NAME = "msg_data";
+const MSGSTATS_COLLECTION = "msgstats";
 // Express
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -44,11 +44,11 @@ app.post('/echo', (req, res) => {
     res.send(req.body);
 });
 app.get('/test', (req, res) => {
-    const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+    const collection = client.db(MONGODB_DB).collection(MSGSTATS_COLLECTION);
     collection.find({}).toArray().then(r => res.send(r));
 });
 app.get('/test/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+    const collection = client.db(MONGODB_DB).collection(MSGSTATS_COLLECTION);
     const id = req.params.id;
     const r = yield collection.findOne({ "id": id });
     if (r) {
@@ -64,7 +64,7 @@ app.post('/test/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const id = req.params.id;
     if (body) {
         const doc = Object.assign({ "id": id, "_dateCreated": (new Date()).toISOString() }, body);
-        const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+        const collection = client.db(MONGODB_DB).collection(MSGSTATS_COLLECTION);
         const r = yield collection.findOne({ "id": id });
         if (r) {
             res.status(302);
@@ -85,7 +85,7 @@ app.post('/test/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 app.delete('/test/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+    const collection = client.db(MONGODB_DB).collection(MSGSTATS_COLLECTION);
     const id = req.params.id;
     const r = yield collection.deleteOne({ "id": id });
     if (r.deletedCount === 0) {

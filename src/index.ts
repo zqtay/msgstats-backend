@@ -23,7 +23,7 @@ client.connect().then(
 ).catch(err => {
   client.close();
 });
-const MSGDATA_COLLECTION_NAME = "msg_data";
+const MSGSTATS_COLLECTION = "msgstats";
 
 // Express
 const app: Express = express();
@@ -39,14 +39,14 @@ app.post('/echo', (req: Request, res: Response) => {
 });
 
 app.get('/test', (req: Request, res: Response) => {
-  const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+  const collection = client.db(MONGODB_DB).collection(MSGSTATS_COLLECTION);
   collection.find({}).toArray().then(
     r => res.send(r)
   );
 });
 
 app.get('/test/:id', async (req: Request, res: Response) => {
-  const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+  const collection = client.db(MONGODB_DB).collection(MSGSTATS_COLLECTION);
   const id = req.params.id;
   const r = await collection.findOne({ "id": id });
   if (r) {
@@ -63,7 +63,7 @@ app.post('/test/:id', async (req: Request, res: Response) => {
   const id = req.params.id;
   if (body) {
     const doc = { "id": id, "_dateCreated": (new Date()).toISOString(), ...body };
-    const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+    const collection = client.db(MONGODB_DB).collection(MSGSTATS_COLLECTION);
     const r = await collection.findOne({ "id": id });
     if (r) {
       res.status(302);
@@ -87,7 +87,7 @@ app.post('/test/:id', async (req: Request, res: Response) => {
 });
 
 app.delete('/test/:id', async (req: Request, res: Response) => {
-  const collection = client.db(MONGODB_DB).collection(MSGDATA_COLLECTION_NAME);
+  const collection = client.db(MONGODB_DB).collection(MSGSTATS_COLLECTION);
   const id = req.params.id;
   const r = await collection.deleteOne({ "id": id });
   if (r.deletedCount === 0) {
